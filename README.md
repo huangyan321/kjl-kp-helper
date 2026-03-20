@@ -7,7 +7,9 @@
 
 <!-- configs -->
 
-**No data**
+| Key                  | Description | Type     | Default                            |
+| -------------------- | ----------- | -------- | ---------------------------------- |
+| `kpHelper.kaBaseUrl` | KA 平台接口地址   | `string` | `"https://kaptain.qunhequnhe.com"` |
 
 <!-- configs -->
 
@@ -15,7 +17,10 @@
 
 <!-- commands -->
 
-**No data**
+| Command           | Title                |
+| ----------------- | -------------------- |
+| `kpHelper.login`  | Kaptain Helper: 登录   |
+| `kpHelper.logout` | Kaptain Helper: 退出登录 |
 
 <!-- commands -->
 

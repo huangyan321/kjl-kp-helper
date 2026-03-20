@@ -152,11 +152,11 @@ index.ts
 
 ```typescript
 // 写入，并标记跨设备同步键
-state.context.globalState.setKeysForSync(['kaTaskCookie'])
-await state.context.globalState.update('kaTaskCookie', cookie)
+state.context.globalState.setKeysForSync(['kpTaskCookie'])
+await state.context.globalState.update('kpTaskCookie', cookie)
 
 // 读取
-const cookie = state.context.globalState.get<string>('kaTaskCookie')
+const cookie = state.context.globalState.get<string>('kpTaskCookie')
 ```
 
 > **注意**：`globalState` 的值不加密，Cookie 属于敏感数据。如需更高安全性可改用 `context.secrets`（SecretStorage），API 仅需将 `update/get` 替换为 `store/get`，接口对齐后迁移成本极低。当前阶段与 `kujiale-pub-lang` 保持一致以降低实现成本。
@@ -167,19 +167,19 @@ const cookie = state.context.globalState.get<string>('kaTaskCookie')
 
 ```typescript
 // 登录后
-await commands.executeCommand('setContext', 'kaTaskLogin', true)
+await commands.executeCommand('setContext', 'kpTaskLogin', true)
 
 // 登出后
-await commands.executeCommand('setContext', 'kaTaskLogin', false)
+await commands.executeCommand('setContext', 'kpTaskLogin', false)
 ```
 
 在 `package.json` 的 `viewsWelcome` 中配置未登录时的引导内容：
 
 ```json
 {
-  "view": "taskBranchPanel",
-  "contents": "请先登录 KA 平台。\n[登录](command:taskBranch.login)",
-  "when": "!kaTaskLogin"
+  "view": "kpHelperPanel",
+  "contents": "请先登录 KA 平台。\n[登录](command:kpHelper.login)",
+  "when": "!kpTaskLogin"
 }
 ```
 
@@ -223,7 +223,7 @@ const tasks = useTaskList()         // ref([])
 const currentBranch = useCurrentBranch() // computed
 
 // 当 tasks 变化时，TreeView 自动刷新
-useTreeView('taskBranchPanel', tasks, { ... })
+useTreeView('kpHelperPanel', tasks, { ... })
 ```
 
 这比手动管理 `EventEmitter` + `onDidChangeTreeData` 更简洁，也是本模板的核心优势。
@@ -340,12 +340,12 @@ Root（虚拟根节点）
 #### 登录流程
 ```
 未登录状态 → 面板显示「请先登录 KA 平台」引导按钮（viewsWelcome）
-  → 点击登录按钮 → 触发 taskBranch.login 命令
+  → 点击登录按钮 → 触发 kpHelper.login 命令
     → showInputBox 输入账号（uid）
       → showInputBox 输入密码（password: true 隐藏）
         → POST /api/ssologin 获取 Cookie
           → GET /pub/sso/getUser 获取用户信息
-            → 成功：存入 globalState，setContext kaTaskLogin=true，刷新面板
+            → 成功：存入 globalState，setContext kpTaskLogin=true，刷新面板
             → 失败：showErrorMessage 提示，不改变登录态
 ```
 
@@ -355,38 +355,38 @@ Root（虚拟根节点）
 
 | 命令 ID | 显示名称 | 快捷键建议 |
 |---------|----------|------------|
-| `taskBranch.switchBranch` | Task Branch: Switch Branch | - |
-| `taskBranch.refreshTasks` | Task Branch: Refresh Tasks | - |
-| `taskBranch.login` | Task Branch: Login / Set Token | - |
-| `taskBranch.logout` | Task Branch: Logout | - |
-| `taskBranch.openInKa` | Task Branch: Open in KA | - |
-| `taskBranch.quickSwitch` | Task Branch: Quick Switch (QuickPick) | `⌘⇧B` 建议 |
+| `kpHelper.switchBranch` | Task Branch: Switch Branch | - |
+| `kpHelper.refreshTasks` | Task Branch: Refresh Tasks | - |
+| `kpHelper.login` | Task Branch: Login / Set Token | - |
+| `kpHelper.logout` | Task Branch: Logout | - |
+| `kpHelper.openInKa` | Task Branch: Open in KA | - |
+| `kpHelper.quickSwitch` | Task Branch: Quick Switch (QuickPick) | `⌘⇧B` 建议 |
 
 ### 6.5 配置项（settings.json）
 
 ```json
 {
-  "taskBranch.kaApiBaseUrl": {
+  "kpHelper.kaApiBaseUrl": {
     "type": "string",
     "default": "https://ka.your-company.com",
     "description": "KA 平台的 API 地址"
   },
-  "taskBranch.assigneeFilter": {
+  "kpHelper.assigneeFilter": {
     "type": "boolean",
     "default": true,
     "description": "仅显示分配给自己的需求"
   },
-  "taskBranch.sprintCount": {
+  "kpHelper.sprintCount": {
     "type": "number",
     "default": 2,
     "description": "显示最近 N 个迭代"
   },
-  "taskBranch.cacheTimeout": {
+  "kpHelper.cacheTimeout": {
     "type": "number",
     "default": 300,
     "description": "任务列表缓存时间（秒）"
   },
-  "taskBranch.autoFetch": {
+  "kpHelper.autoFetch": {
     "type": "boolean",
     "default": true,
     "description": "切换分支前自动 git fetch"
@@ -485,7 +485,7 @@ interface ITaskPlatform {
   name: string
   getSprints(): Promise<Sprint[]>
   getTasksByAssignee(userId: string): Promise<Task[]>
-  getTaskBranches(taskId: string): Promise<Branch[]>
+  getkpHelperes(taskId: string): Promise<Branch[]>
 }
 
 // KA 实现
@@ -499,7 +499,7 @@ class JiraPlatform implements ITaskPlatform { ... }
 KA 返回的分支名格式可能多样，通过可配置的正则或函数解析：
 
 ```json
-"taskBranch.branchPattern": "feature/{taskId}-{taskName}"
+"kpHelper.branchPattern": "feature/{taskId}-{taskName}"
 ```
 
 ---

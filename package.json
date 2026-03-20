@@ -1,25 +1,13 @@
 {
-  "publisher": "antfu",
-  "name": "ext-name",
-  "displayName": "ext-name",
+  "publisher": "huishi",
+  "name": "kjl-kp-helper",
+  "displayName": "Task Branch Manager",
   "version": "0.0.0",
   "private": true,
   "packageManager": "pnpm@10.27.0",
-  "description": "",
-  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+  "description": "Kaptain 开发任务与 Git 分支管理插件",
+  "author": "",
   "license": "MIT",
-  "funding": "https://github.com/sponsors/antfu",
-  "homepage": "https://github.com/antfu/ext-name#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/antfu/ext-name"
-  },
-  "bugs": {
-    "url": "https://github.com/antfu/ext-name/issues"
-  },
-  "sponsor": {
-    "url": "https://github.com/sponsors/antfu"
-  },
   "categories": [
     "Other"
   ],
@@ -37,11 +25,52 @@
     "onStartupFinished"
   ],
   "contributes": {
-    "commands": [],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kpHelper",
+          "title": "KJL Kaptain Helper",
+          "icon": "res/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "kpHelper": [
+        {
+          "id": "kpHelperPanel",
+          "name": "任务分支"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "kpHelperPanel",
+        "contents": "请登录 Kaptain 平台以查看您的开发任务。\n[登录](command:kpHelper.login)",
+        "when": "!kpHelperLogin"
+      }
+    ],
+    "commands": [
+      {
+        "command": "kpHelper.login",
+        "title": "登录",
+        "category": "Kaptain Helper"
+      },
+      {
+        "command": "kpHelper.logout",
+        "title": "退出登录",
+        "category": "Kaptain Helper"
+      }
+    ],
     "configuration": {
       "type": "object",
-      "title": "ext-name",
-      "properties": {}
+      "title": "Kaptain Helper",
+      "properties": {
+        "kpHelper.kaBaseUrl": {
+          "type": "string",
+          "default": "https://kaptain.qunhequnhe.com",
+          "description": "KA 平台接口地址"
+        }
+      }
     }
   },
   "scripts": {
@@ -57,9 +86,11 @@
     "ext:package": "vsce package --no-dependencies",
     "ext:publish": "vsxpub --no-dependencies"
   },
+  "dependencies": {
+    "axios": "^1.13.6"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "^6.7.3",
-    "@antfu/ni": "^28.0.0",
     "@types/node": "^25.0.3",
     "@types/vscode": "^1.97.0",
     "@vscode/vsce": "^3.7.1",
