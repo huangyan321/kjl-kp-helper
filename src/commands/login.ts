@@ -15,7 +15,6 @@ export async function loginCommand(): Promise<void> {
     placeHolder: '请输入账号（工号）',
     ignoreFocusOut: true,
     validateInput: v => v?.trim() ? null : '账号不能为空',
-    value: 'huishi'
   })
   if (!uid?.trim())
     return
@@ -26,7 +25,6 @@ export async function loginCommand(): Promise<void> {
     password: true,
     ignoreFocusOut: true,
     validateInput: v => v?.trim() ? null : '密码不能为空',
-    value: 'mrwisveryman123..'
   })
   if (!pswd?.trim())
     return

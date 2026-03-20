@@ -47,5 +47,5 @@ export function isLoggedIn(): boolean {
 
 /** 通过 VSCode context 控制视图的 when 条件 */
 function syncLoginContext(): Thenable<unknown> {
-  return commands.executeCommand('setContext', 'kpTaskLogin', isLoggedIn())
+  return commands.executeCommand('setContext', 'kpHelperLogin', isLoggedIn())
 }
