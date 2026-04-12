@@ -28,7 +28,9 @@ const { activate, deactivate } = defineExtension((ctx) => {
 
   // 恢复登录态（同步读取 globalState，异步更新 context key）
   restoreAuth()
-  void taskTreeProvider.loadTasks('ready')
+
+  // 登录态恢复后才加载任务（未登录时 loadTasks 返回 empty，视图 welcome 页接管）
+  void taskTreeProvider.loadTasks()
 
   logger.info('Kaptain Helper activated')
 })

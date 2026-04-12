@@ -46,9 +46,8 @@ export async function loginCommand(): Promise<void> {
           return
         }
         await saveUser(user)
-        await taskTreeProvider.loadTasks('ready')
-        
-        taskTreeProvider.refresh()
+        // 登录成功后立即加载真实任务数据
+        void taskTreeProvider.loadTasks()
 
         const displayName = user.name || user.ldap || user.username || uid
         window.showInformationMessage(`欢迎您，${displayName}`)

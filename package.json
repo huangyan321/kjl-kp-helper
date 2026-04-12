@@ -62,7 +62,7 @@
       },
       {
         "command": "kpHelper.refreshTasks",
-        "title": "刷新任务列表（MVP Mock）",
+        "title": "刷新任务列表",
         "category": "Kaptain Helper",
         "icon": "$(refresh)"
       }
@@ -84,6 +84,16 @@
           "type": "string",
           "default": "https://kaptain.qunhequnhe.com",
           "description": "KA 平台接口地址"
+        },
+        "kpHelper.projectId": {
+          "type": "number",
+          "default": 269,
+          "description": "Kaptain 项目 ID（决定拉取哪个项目下的迭代与任务）"
+        },
+        "kpHelper.cacheTimeout": {
+          "type": "number",
+          "default": 300,
+          "description": "任务列表缓存时间（秒），0 表示不缓存"
         }
       }
     }
@@ -102,7 +112,8 @@
     "ext:publish": "vsxpub --no-dependencies"
   },
   "dependencies": {
-    "axios": "^1.13.6"
+    "axios": "^1.13.6",
+    "simple-git": "^3.36.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.7.3",

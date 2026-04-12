@@ -1,10 +1,8 @@
-import { EventEmitter, ThemeIcon, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode'
+import { EventEmitter, ThemeIcon, TreeDataProvider, TreeItem, TreeItemCollapsibleState, window } from 'vscode'
 import { isLoggedIn } from '../auth/AuthService'
-import { type BranchInfo, type TaskInfo, type TaskLoadMode, taskService, type SprintInfo } from '../services/TaskService'
+import { type TaskInfo, taskService, type SprintInfo } from '../services/TaskService'
 import { state } from '../state'
-
-export type MockBranch = BranchInfo
-export type MockTask = TaskInfo
+import { logger } from '../utils'
 
 type RootState = 'loading' | 'empty' | 'error' | 'ready'
 
@@ -23,9 +21,11 @@ class SprintNode extends TreeItem {
 class TaskNode extends TreeItem {
   constructor(readonly task: TaskInfo) {
     super(task.title, task.branches.length > 1 ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None)
-    const statusText = getStatusText(task.status)
-    this.description = `${statusText} · ${task.branches[0]?.name ?? '未绑定分支'}`
-    this.tooltip = `${statusText}\n点击可模拟切换主分支（MVP）`
+    const statusText = task.statusName ? `[${task.statusName}]` : getStatusText(task.status)
+    this.description = task.branches.length > 0
+      ? `${statusText} · ${task.branches[0].name}`
+      : statusText
+    this.tooltip = `${statusText}\n点击切换分支`
     this.iconPath = new ThemeIcon(getStatusIcon(task.status))
     this.contextValue = 'kpHelper.task'
     this.command = {
@@ -66,12 +66,12 @@ export class TaskTreeProvider implements TreeDataProvider<TreeNode> {
   private state: RootState = 'loading'
   private sprints: SprintInfo[] = []
 
-  async loadTasks(mode: TaskLoadMode = 'ready'): Promise<void> {
+  async loadTasks(): Promise<void> {
     this.state = 'loading'
     this.refresh()
 
     try {
-      const sprints = await taskService.getSprints(mode)
+      const sprints = await taskService.getSprints()
       if (sprints.length === 0) {
         this.state = 'empty'
         this.sprints = []
@@ -83,7 +83,10 @@ export class TaskTreeProvider implements TreeDataProvider<TreeNode> {
       this.sprints = sprints
       this.refresh()
     }
-    catch {
+    catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      logger.error('loadTasks failed:', msg)
+      window.showErrorMessage(`任务加载失败：${msg}`)
       this.state = 'error'
       this.sprints = []
       this.refresh()
@@ -109,16 +112,16 @@ export class TaskTreeProvider implements TreeDataProvider<TreeNode> {
       const identity = createInfoNode(`已登录：${name}`, 'MVP 阶段使用 mock 任务与分支交互', 'account')
 
       if (this.state === 'loading') {
-        return [identity, createInfoNode('正在拉取任务...', '模拟请求中，请稍候', 'loading~spin')]
+        return [identity, createInfoNode('正在拉取任务...', '请稍候', 'loading~spin')]
       }
 
       if (this.state === 'error') {
-        const err = createInfoNode('任务加载失败（模拟）', '请点击顶部刷新按钮重试，后续将接入真实接口', 'error')
+        const err = createInfoNode('任务加载失败', '请检查网络或重新登录，然后点击刷新按钮', 'error')
         return [identity, err]
       }
 
       if (this.state === 'empty') {
-        return [identity, createInfoNode('当前筛选下暂无任务（模拟）', '请点击顶部刷新按钮重新加载', 'inbox')]
+        return [identity, createInfoNode('当前迭代暂无任务', '请点击顶部刷新按钮重新加载', 'inbox')]
       }
 
       const nodes = this.sprints.map((s, idx) => new SprintNode(s, idx === 0))

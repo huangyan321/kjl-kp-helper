@@ -3,6 +3,7 @@ import type { ExtensionContext } from 'vscode'
 export interface KaUser {
   name?: string
   ldap?: string
+  ldapId?: string // Kaptain 返回的字段名
   username?: string
   email?: string
   [key: string]: unknown

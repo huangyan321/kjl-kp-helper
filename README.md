@@ -7,9 +7,11 @@
 
 <!-- configs -->
 
-| Key                  | Description | Type     | Default                            |
-| -------------------- | ----------- | -------- | ---------------------------------- |
-| `kpHelper.kaBaseUrl` | KA 平台接口地址   | `string` | `"https://kaptain.qunhequnhe.com"` |
+| Key                     | Description                    | Type     | Default                            |
+| ----------------------- | ------------------------------ | -------- | ---------------------------------- |
+| `kpHelper.kaBaseUrl`    | KA 平台接口地址                      | `string` | `"https://kaptain.qunhequnhe.com"` |
+| `kpHelper.projectId`    | Kaptain 项目 ID（决定拉取哪个项目下的迭代与任务） | `number` | `269`                              |
+| `kpHelper.cacheTimeout` | 任务列表缓存时间（秒），0 表示不缓存            | `number` | `300`                              |
 
 <!-- configs -->
 
@@ -17,11 +19,11 @@
 
 <!-- commands -->
 
-| Command                 | Title                            |
-| ----------------------- | -------------------------------- |
-| `kpHelper.login`        | Kaptain Helper: 登录               |
-| `kpHelper.logout`       | Kaptain Helper: 退出登录             |
-| `kpHelper.refreshTasks` | Kaptain Helper: 刷新任务列表（MVP Mock） |
+| Command                 | Title                  |
+| ----------------------- | ---------------------- |
+| `kpHelper.login`        | Kaptain Helper: 登录     |
+| `kpHelper.logout`       | Kaptain Helper: 退出登录   |
+| `kpHelper.refreshTasks` | Kaptain Helper: 刷新任务列表 |
 
 <!-- commands -->
 
