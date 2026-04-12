@@ -17,10 +17,11 @@
 
 <!-- commands -->
 
-| Command           | Title                |
-| ----------------- | -------------------- |
-| `kpHelper.login`  | Kaptain Helper: 登录   |
-| `kpHelper.logout` | Kaptain Helper: 退出登录 |
+| Command                 | Title                            |
+| ----------------------- | -------------------------------- |
+| `kpHelper.login`        | Kaptain Helper: 登录               |
+| `kpHelper.logout`       | Kaptain Helper: 退出登录             |
+| `kpHelper.refreshTasks` | Kaptain Helper: 刷新任务列表（MVP Mock） |
 
 <!-- commands -->
 

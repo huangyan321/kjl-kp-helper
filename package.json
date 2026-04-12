@@ -59,8 +59,23 @@
         "command": "kpHelper.logout",
         "title": "退出登录",
         "category": "Kaptain Helper"
+      },
+      {
+        "command": "kpHelper.refreshTasks",
+        "title": "刷新任务列表（MVP Mock）",
+        "category": "Kaptain Helper",
+        "icon": "$(refresh)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "kpHelper.refreshTasks",
+          "when": "view == kpHelperPanel && kpHelperLogin",
+          "group": "navigation@1"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "Kaptain Helper",

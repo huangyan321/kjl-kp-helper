@@ -46,6 +46,7 @@ export async function loginCommand(): Promise<void> {
           return
         }
         await saveUser(user)
+        await taskTreeProvider.loadTasks('ready')
         
         taskTreeProvider.refresh()
 

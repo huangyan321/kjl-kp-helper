@@ -4,6 +4,8 @@ import { state } from './state'
 import { restoreAuth } from './auth/AuthService'
 import { loginCommand } from './commands/login'
 import { logoutCommand } from './commands/logout'
+import { refreshTasksCommand } from './commands/refreshTasks'
+import { switchBranchMockCommand, taskPrimaryActionCommand } from './commands/switchBranchMock'
 import { taskTreeProvider } from './providers/TaskTreeProvider'
 import { logger } from './utils'
 
@@ -20,9 +22,13 @@ const { activate, deactivate } = defineExtension((ctx) => {
   // 注册命令
   useCommand('kpHelper.login', loginCommand)
   useCommand('kpHelper.logout', logoutCommand)
+  useCommand('kpHelper.refreshTasks', refreshTasksCommand)
+  useCommand('kpHelper.taskPrimaryAction', taskPrimaryActionCommand)
+  useCommand('kpHelper.switchBranchMock', switchBranchMockCommand)
 
   // 恢复登录态（同步读取 globalState，异步更新 context key）
   restoreAuth()
+  void taskTreeProvider.loadTasks('ready')
 
   logger.info('Kaptain Helper activated')
 })
