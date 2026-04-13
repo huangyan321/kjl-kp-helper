@@ -76,6 +76,48 @@
         }
       ]
     },
+    "colors": [
+      {
+        "id": "kpHelper.todoForeground",
+        "description": "待确认任务文字颜色",
+        "defaults": { "light": "#055FE6", "dark": "#7BA7F7", "highContrast": "#055FE6", "highContrastLight": "#055FE6" }
+      },
+      {
+        "id": "kpHelper.inProgressForeground",
+        "description": "开发中任务文字颜色",
+        "defaults": { "light": "#EC8205", "dark": "#FFB347", "highContrast": "#EC8205", "highContrastLight": "#EC8205" }
+      },
+      {
+        "id": "kpHelper.devDoneForeground",
+        "description": "开发完成任务文字颜色",
+        "defaults": { "light": "#008888", "dark": "#4DB6B6", "highContrast": "#008888", "highContrastLight": "#008888" }
+      },
+      {
+        "id": "kpHelper.testingForeground",
+        "description": "待测试任务文字颜色",
+        "defaults": { "light": "#7850B4", "dark": "#C39AE8", "highContrast": "#7850B4", "highContrastLight": "#7850B4" }
+      },
+      {
+        "id": "kpHelper.doneForeground",
+        "description": "已完成任务文字颜色",
+        "defaults": { "light": "#198061", "dark": "#56C78F", "highContrast": "#198061", "highContrastLight": "#198061" }
+      },
+      {
+        "id": "kpHelper.priorityP0",
+        "description": "P0 优先级标志颜色",
+        "defaults": { "light": "#FF0000", "dark": "#FF4444", "highContrast": "#FF0000", "highContrastLight": "#FF0000" }
+      },
+      {
+        "id": "kpHelper.priorityP1",
+        "description": "P1 优先级标志颜色",
+        "defaults": { "light": "#FFA500", "dark": "#FFB84D", "highContrast": "#FFA500", "highContrastLight": "#FFA500" }
+      },
+      {
+        "id": "kpHelper.priorityOther",
+        "description": "P2+ 优先级标志颜色",
+        "defaults": { "light": "#8ED67C", "dark": "#8ED67C", "highContrast": "#8ED67C", "highContrastLight": "#8ED67C" }
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Kaptain Helper",

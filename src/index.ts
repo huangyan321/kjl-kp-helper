@@ -7,10 +7,15 @@ import { logoutCommand } from './commands/logout'
 import { refreshTasksCommand } from './commands/refreshTasks'
 import { switchBranchMockCommand, taskPrimaryActionCommand } from './commands/switchBranchMock'
 import { taskTreeProvider } from './providers/TaskTreeProvider'
+import { authHooks } from './services/KpApiClient'
+import { TaskDecorationProvider } from './providers/TaskDecorationProvider'
 import { logger } from './utils'
 
 const { activate, deactivate } = defineExtension((ctx) => {
   state.context = ctx
+
+  // 401 后刷新 TreeView，使 viewsWelcome 立即生效
+  authHooks.onExpired = () => taskTreeProvider.refresh()
 
   // 注册 TreeView
   const treeView = window.createTreeView('kpHelperPanel', {
@@ -18,6 +23,8 @@ const { activate, deactivate } = defineExtension((ctx) => {
     showCollapseAll: false,
   })
   ctx.subscriptions.push(treeView)
+  ctx.subscriptions.push(taskTreeProvider.watchActiveEditor())
+  ctx.subscriptions.push(window.registerFileDecorationProvider(new TaskDecorationProvider()))
 
   // 注册命令
   useCommand('kpHelper.login', loginCommand)

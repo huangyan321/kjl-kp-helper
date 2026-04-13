@@ -18,6 +18,7 @@ export interface TaskInfo {
   title: string
   status: TaskStatus
   statusName: string
+  priorityName: string  // 原始优先级名称，如 'P0'、'P1'、'紧急' 等
   kaUrl: string
   branches: BranchInfo[]
 }
@@ -114,6 +115,7 @@ class KaTaskSource implements TaskSource {
           title: issue.name,
           status: mapStatus(issue),
           statusName: issue.statusName ?? '',
+          priorityName: issue.priorityName ?? '',
           kaUrl: `${getKaBaseUrl()}/project/${issue.iterationId}/issue/${issue.key}`,
           branches: branchChanges
             .filter(b => !!b.branch)

@@ -131,3 +131,33 @@ export async function getCurrentBranch(folderPath: string): Promise<string | und
     return undefined
   }
 }
+
+/**
+ * 获取所有 workspace folder 的当前分支及 remote URL 列表
+ * 用于跨项目的 repo-aware isCurrent 判断
+ */
+export interface FolderBranchInfo {
+  folderPath: string
+  branch: string
+  remotes: string[]
+}
+
+export async function getWorkspaceBranchInfo(): Promise<FolderBranchInfo[]> {
+  const folders = workspace.workspaceFolders ?? []
+  const results: FolderBranchInfo[] = []
+  for (const folder of folders) {
+    try {
+      const git = simpleGit(folder.uri.fsPath)
+      const branch = await git.revparse(['--abbrev-ref', 'HEAD'])
+      const remoteSummary = await git.getRemotes(true)
+      const remotes = remoteSummary.flatMap(r =>
+        [r.refs.fetch, r.refs.push].filter((u): u is string => !!u),
+      )
+      results.push({ folderPath: folder.uri.fsPath, branch: branch.trim(), remotes })
+    }
+    catch {
+      // 跳过非 git 文件夹
+    }
+  }
+  return results
+}

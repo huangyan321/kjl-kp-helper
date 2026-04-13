@@ -4,6 +4,11 @@ import { state, type KaUser } from '../state'
 
 const SSO_BASE = 'https://kuauth.kujiale.com'
 
+/** 插件初始化时注入，避免循环依赖 */
+export const authHooks = {
+  onExpired: undefined as (() => void) | undefined,
+}
+
 export function getKaBaseUrl(): string {
   return workspace.getConfiguration().get<string>('kpHelper.kaBaseUrl') ?? 'https://kaptain.qunhequnhe.com'
 }
@@ -31,6 +36,7 @@ kaClient.interceptors.response.use(
       state.cookie = ''
       await state.context.globalState.update('kpTaskCookie', '')
       await commands.executeCommand('setContext', 'kpHelperLogin', false)
+      authHooks.onExpired?.()
       const action = await window.showErrorMessage(
         'Kaptain 登录态已过期，请重新登录',
         '立即登录',
@@ -90,6 +96,7 @@ export interface KaIssue {
   name: string
   statusName: string
   isDone: boolean
+  priorityName?: string // e.g. 'P0', 'P1', 'P2', '紧急', '高' 等
   leader?: string
   developer?: string
   iterationId: number
