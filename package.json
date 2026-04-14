@@ -65,6 +65,12 @@
         "title": "刷新任务列表",
         "category": "Kaptain Helper",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "kpHelper.openInKaptain",
+        "title": "在 Kaptain 中打开",
+        "category": "Kaptain Helper",
+        "icon": "$(link-external)"
       }
     ],
     "menus": {
@@ -72,6 +78,13 @@
         {
           "command": "kpHelper.refreshTasks",
           "when": "view == kpHelperPanel && kpHelperLogin",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "kpHelper.openInKaptain",
+          "when": "view == kpHelperPanel && viewItem == kpHelper.task",
           "group": "navigation@1"
         }
       ]
@@ -136,6 +149,13 @@
           "type": "number",
           "default": 300,
           "description": "任务列表缓存时间（秒），0 表示不缓存"
+        },
+        "kpHelper.fetchConcurrency": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "拉取任务关联分支时的最大并发请求数"
         }
       }
     }

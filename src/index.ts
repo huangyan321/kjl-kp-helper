@@ -6,6 +6,7 @@ import { loginCommand } from './commands/login'
 import { logoutCommand } from './commands/logout'
 import { refreshTasksCommand } from './commands/refreshTasks'
 import { switchBranchMockCommand, taskPrimaryActionCommand } from './commands/switchBranchMock'
+import { openInKaptainCommand } from './commands/openInKaptain'
 import { taskTreeProvider } from './providers/TaskTreeProvider'
 import { authHooks } from './services/KpApiClient'
 import { TaskDecorationProvider } from './providers/TaskDecorationProvider'
@@ -32,6 +33,7 @@ const { activate, deactivate } = defineExtension((ctx) => {
   useCommand('kpHelper.refreshTasks', refreshTasksCommand)
   useCommand('kpHelper.taskPrimaryAction', taskPrimaryActionCommand)
   useCommand('kpHelper.switchBranchMock', switchBranchMockCommand)
+  useCommand('kpHelper.openInKaptain', openInKaptainCommand)
 
   // 恢复登录态（同步读取 globalState，异步更新 context key）
   restoreAuth()

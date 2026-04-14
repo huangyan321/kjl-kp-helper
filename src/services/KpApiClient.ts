@@ -113,6 +113,17 @@ export interface KaBranchChange {
 // ─── Kaptain 业务接口方法 ─────────────────────────────────────
 
 /**
+ * 获取过滤器 ID
+ * GET /api/issue/board/checkFilter
+ */
+export async function getFilterId(leaderLdap: string): Promise<number | null> {
+  const res = await kaClient.get('/api/issue/board/checkFilter', {
+    params: { value: JSON.stringify({ search: { leader: leaderLdap }, order: 'id', desc: true }) },
+  })
+  return res.data?.data ?? null
+}
+
+/**
  * 获取迭代列表
  * GET /api/iteration/getIterationList?projectId=X
  */
@@ -122,13 +133,26 @@ export async function getIterationList(projectId: number): Promise<KaIteration[]
 }
 
 /**
- * 获取指定迭代 + 负责人的父级任务列表
+ * 获取指定迭代 + 负责人的所有任务（含子任务）
  * POST /api/issue/listEasyPage
- * 使用 search.parentId=0 只取顶层任务（避免子任务过多导致请求量爆炸）
  */
 export async function listIssues(iterationId: number, leaderLdap: string): Promise<KaIssue[]> {
   const res = await kaClient.post('/api/issue/listEasyPage', {
-    search: { iterationId, leader: leaderLdap, parentId: 0 },
+    search: { iterationId, leader: leaderLdap },
+    order: 'id',
+    desc: true,
+  })
+  return res.data?.data?.list ?? []
+}
+
+/**
+ * 按 ids 批量查任务（用于补充子任务对应的父任务）
+ * POST /api/issue/listEasyPage with search.ids
+ */
+export async function listIssuesByIds(iterationId: number, ids: number[]): Promise<KaIssue[]> {
+  if (ids.length === 0) return []
+  const res = await kaClient.post('/api/issue/listEasyPage', {
+    search: { iterationId, ids },
     order: 'id',
     desc: true,
   })

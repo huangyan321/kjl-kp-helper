@@ -26,19 +26,37 @@ class TaskNode extends TreeItem {
     const priorityPrefix = level === PriorityLevel.P0 ? 'P0 ' : level === PriorityLevel.P1 ? 'P1 ' : 'P2 '
     super(priorityPrefix + task.title, task.branches.length > 1 ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None)
     const statusText = task.statusName ? `[${task.statusName}]` : getStatusText(task.status)
+    const dot = getStatusDot(task.statusName)
     this.description = task.branches.length > 0
-      ? `${statusText} · ${task.branches[0].name}`
-      : statusText
+      ? `${dot}${statusText} · ${task.branches[0].name}`
+      : `${dot}${statusText}`
     this.tooltip = `${statusText}\n点击切换分支`
     this.iconPath = new ThemeIcon(getStatusIcon(task.status))
     this.contextValue = 'kpHelper.task'
-    this.resourceUri = makeTaskUri(task.id, getTaskColorKey(task.statusName))
+    const colorKey = getTaskColorKey(task.statusName)
+    if (colorKey !== null) {
+      this.resourceUri = makeTaskUri(task.id, colorKey)
+    }
     this.command = {
       command: 'kpHelper.taskPrimaryAction',
       title: 'Task Primary Action',
       arguments: [task],
     }
   }
+}
+
+/** 根据状态名返回彩色圆点前缀 */
+function getStatusDot(statusName: string): string {
+  if (!statusName) return ''
+  const devDone = ['开发完成', '待发布']
+  const testing = ['待测试', '测试中', '提测']
+  const inProgress = ['开发中', '进行中', '联调']
+  const done = ['已完成', '已关闭', '关闭', '取消', '已拒绝', '拒绝']
+  if (devDone.some(k => statusName.includes(k))) return '🔵 '
+  if (testing.some(k => statusName.includes(k))) return '🟣 '
+  if (inProgress.some(k => statusName.includes(k))) return '🟡 '
+  if (done.some(k => statusName.includes(k))) return '🟢 '
+  return ''
 }
 
 function getStatusText(status: TaskInfo['status']): string {

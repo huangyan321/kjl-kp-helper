@@ -1,6 +1,29 @@
 import { workspace } from 'vscode'
-import { getIterationList, listIssues, getChangeSet, getKaBaseUrl, type KaIssue } from './KpApiClient'
+import { getIterationList, listIssues, listIssuesByIds, getChangeSet, getFilterId, getKaBaseUrl, type KaIssue } from './KpApiClient'
 import { state } from '../state'
+
+// ─── 简易并发控制器 ────────────────────────────────────────────
+
+function pLimit(concurrency: number) {
+  let active = 0
+  const queue: Array<() => void> = []
+  const next = () => {
+    if (active >= concurrency || queue.length === 0) return
+    active++
+    queue.shift()!()
+  }
+  return function limit<T>(fn: () => Promise<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      queue.push(() => {
+        fn().then(resolve, reject).finally(() => {
+          active--
+          next()
+        })
+      })
+      next()
+    })
+  }
+}
 
 export type TaskStatus = 'in_progress' | 'todo' | 'done'
 export type TaskLoadMode = 'ready' | 'empty' | 'error'
@@ -19,6 +42,8 @@ export interface TaskInfo {
   status: TaskStatus
   statusName: string
   priorityName: string  // 原始优先级名称，如 'P0'、'P1'、'紧急' 等
+  iterationId: number   // 所属迭代 ID，用于生成 Kaptain 链接
+  filterId: number | null  // 过滤器 ID，用于生成 Kaptain 链接
   kaUrl: string
   branches: BranchInfo[]
 }
@@ -89,6 +114,9 @@ class KaTaskSource implements TaskSource {
 
     const projectId = workspace.getConfiguration().get<number>('kpHelper.projectId') ?? 269
 
+    // 提前获取 filterId，整个 fetch 共用一次
+    const filterId = await getFilterId(ldap)
+    
     // 1. 获取迭代列表，取「迭代中」状态的（最多 2 个）
     const iterations = await getIterationList(projectId)
     let currentIterations = iterations.filter(it => it.statusName === '迭代中').slice(0, 2)
@@ -100,37 +128,65 @@ class KaTaskSource implements TaskSource {
     }
 
     const sprints: SprintInfo[] = []
-
+    console.time('fetchSprints') // 计时 fetchSprints 总耗时，方便调优和监控
     for (const iter of currentIterations) {
-      // 2. 获取当前用户在该迭代下的父级任务
-      const issues = await listIssues(iter.id, ldap)
+      // 2. 获取当前用户在该迭代下的所有任务（含子任务）
+      const allIssues = await listIssues(iter.id, ldap)
+      console.log('allIssues', allIssues)
 
-      // 3. 逐个获取关联分支（顺序执行，避免请求并发过多）
-      const tasks: TaskInfo[] = []
-      for (const issue of issues) {
-        const branchChanges = await getChangeSet(issue.key)
-        tasks.push({
-          id: String(issue.id),
-          key: issue.key,
-          title: issue.name,
-          status: mapStatus(issue),
-          statusName: issue.statusName ?? '',
-          priorityName: issue.priorityName ?? '',
-          kaUrl: `${getKaBaseUrl()}/project/${issue.iterationId}/issue/${issue.key}`,
-          branches: branchChanges
-            .filter(b => !!b.branch)
-            .map(b => ({
-              name: b.branch,
-              isCurrent: false, // 待 GitService 刷新时更新
-              repo: b.repo,
-              serviceName: b.serviceName,
-            })),
-        })
+      // 3. 分离顶层任务与子任务，子任务需要补充其父任务
+      const topLevelIssues = allIssues.filter(i => i.parentId === 0)
+      const subIssues = allIssues.filter(i => i.parentId !== 0)
+
+      // 4. 收集子任务的 parentId（去重，排除已在顶层列表中的）
+      const topLevelIds = new Set(topLevelIssues.map(i => i.id))
+      const missingParentIds = [...new Set(
+        subIssues.map(i => i.parentId).filter(pid => !topLevelIds.has(pid))
+      )]
+
+      // 5. 批量查询缺失的父任务
+      const parentIssues = await listIssuesByIds(iter.id, missingParentIds)
+
+      // 6. 合并：顶层任务 + 补充的父任务（按 id 去重）
+      const issueMap = new Map<number, KaIssue>()
+      for (const issue of [...topLevelIssues, ...parentIssues]) {
+        issueMap.set(issue.id, issue)
       }
+      const issues = [...issueMap.values()]
+      
+      // 7. 并发获取关联分支（并发数由用户配置 kpHelper.fetchConcurrency 控制）
+      const concurrency = workspace.getConfiguration().get<number>('kpHelper.fetchConcurrency') ?? 5
+      const limit = pLimit(concurrency)
+      const tasks: TaskInfo[] = await Promise.all(
+        issues.map(issue => limit(async () => {
+          const branchChanges = await getChangeSet(issue.key)
+          return {
+            id: String(issue.id),
+            key: issue.key,
+            title: issue.name,
+            status: mapStatus(issue),
+            statusName: issue.statusName ?? '',
+            priorityName: issue.priorityName ?? '',
+            iterationId: issue.iterationId,
+            filterId,
+            kaUrl: `${getKaBaseUrl()}/project/${issue.iterationId}/issue/${issue.key}`,
+            branches: branchChanges
+              .filter(b => !!b.branch && b.serviceType === 'WEB')
+              .map(b => ({
+                name: b.branch,
+                isCurrent: false,
+                repo: b.repo,
+                serviceName: b.serviceName,
+              })),
+          } satisfies TaskInfo
+        }))
+      )
 
       sprints.push({ id: String(iter.id), name: iter.name, tasks })
     }
+    console.timeEnd('fetchSprints')
 
+    // 更新缓存
     this.cache = { data: sprints, fetchedAt: Date.now() }
     return sprints
   }

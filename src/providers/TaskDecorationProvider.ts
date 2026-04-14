@@ -58,15 +58,16 @@ const STATUS_RULES: Array<{ keywords: string[]; color: TaskColorKey }> = [
   { keywords: ['开发完成', '待发布'], color: TaskColorKey.DevDone },
   { keywords: ['待测试', '测试中', '提测'], color: TaskColorKey.Testing },
   { keywords: ['开发中', '进行中', '联调'], color: TaskColorKey.InProgress },
-  { keywords: ['已完成', '关闭', '取消'], color: TaskColorKey.Done },
+  { keywords: ['已完成', '已关闭', '关闭', '取消', '已拒绝', '拒绝'], color: TaskColorKey.Done },
 ]
 
-export function getTaskColorKey(statusName: string): TaskColorKey {
-  if (!statusName) return TaskColorKey.Todo
+/** 未匹配任何状态规则时返回 null，调用方按需处理 */
+export function getTaskColorKey(statusName: string): TaskColorKey | null {
+  if (!statusName) return null
   for (const { keywords, color } of STATUS_RULES) {
     if (keywords.some(kw => statusName.includes(kw))) return color
   }
-  return TaskColorKey.Todo
+  return null
 }
 
 // URI 格式: kphelper-task:/<colorKey>/<taskId>
@@ -79,9 +80,6 @@ export function makeTaskUri(taskId: string, colorKey: TaskColorKey): Uri {
 export class TaskDecorationProvider implements FileDecorationProvider {
   provideFileDecoration(uri: Uri): FileDecoration | undefined {
     if (uri.scheme !== TASK_DECORATION_SCHEME) return undefined
-    const colorKey = uri.path.split('/')[1]
-    const colorId = COLOR_IDS[colorKey]
-    if (!colorId) return undefined
-    return new FileDecoration(undefined, undefined, new ThemeColor(colorId))
+    return undefined
   }
 }
