@@ -6,7 +6,8 @@
   "private": true,
   "packageManager": "pnpm@10.27.0",
   "description": "Kaptain 开发任务与 Git 分支管理插件",
-  "author": "",
+  "repository": "https://github.com/huangyan321/kjl-kp-helper",
+  "author": "huangyan321",
   "license": "MIT",
   "categories": [
     "Other"
