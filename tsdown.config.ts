@@ -11,6 +11,11 @@ export default defineConfig({
   external: [
     'vscode',
   ],
+  noExternal: [
+    'axios',
+    'simple-git',
+    'reactive-vscode',
+  ],
   hooks(hooks) {
     hooks.hookOnce('build:prepare', () => {
       execSync('nr update')
