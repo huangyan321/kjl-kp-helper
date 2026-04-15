@@ -24,14 +24,21 @@ class TaskNode extends TreeItem {
   constructor(readonly task: TaskInfo) {
     const level = getPriorityLevelFromName(task.priorityName)
     const priorityPrefix = level === PriorityLevel.P0 ? 'P0 ' : level === PriorityLevel.P1 ? 'P1 ' : 'P2 '
-    super(priorityPrefix + task.title, task.branches.length > 1 ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None)
+    const isActiveBranch = task.branches.some(b => b.isCurrent)
+    const activePrefix = isActiveBranch ? '▶ ' : ''
+    super(activePrefix + priorityPrefix + task.title, task.branches.length > 1 ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None)
     const statusText = task.statusName ? `[${task.statusName}]` : getStatusText(task.status)
     const dot = getStatusDot(task.statusName)
     this.description = task.branches.length > 0
       ? `${dot}${statusText} · ${task.branches[0].name}`
       : `${dot}${statusText}`
-    this.tooltip = `${statusText}\n点击切换分支`
-    this.iconPath = new ThemeIcon(getStatusIcon(task.status))
+    const mrLine = task.branches.length > 0
+      ? task.branches[0].processLabels.map(l => `[${l}]`).join(' ')
+      : ''
+    this.tooltip = [statusText, mrLine].filter(Boolean).join('\n')
+    this.iconPath = isActiveBranch
+      ? new ThemeIcon(getStatusIcon(task.status), new ThemeColor('charts.green'))
+      : new ThemeIcon(getStatusIcon(task.status))
     this.contextValue = 'kpHelper.task'
     const colorKey = getTaskColorKey(task.statusName)
     if (colorKey !== null) {
@@ -202,6 +209,14 @@ export class TaskTreeProvider implements TreeDataProvider<TreeNode> {
   refresh(): void {
     this._onChange.fire(undefined)
   }
+
+  /** 切换分支后调用：重新获取 git 当前分支信息，更新 isCurrent 高亮，不重新请求接口 */
+  async refreshBranchStatus(): Promise<void> {
+    if (this.state !== 'ready' || this.sprints.length === 0) return
+    const folderBranchInfos = await getWorkspaceBranchInfo()
+    updateIsCurrent(this.sprints, folderBranchInfos)
+    this.refresh()
+}
 
   /** 监听活跃编辑器变化，切换项目文件时自动重新过滤任务列表 */
   watchActiveEditor(): Disposable {

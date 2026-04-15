@@ -33,6 +33,7 @@ export interface BranchInfo {
   isCurrent: boolean
   repo?: string        // git remote URL，用于匹配工作区文件夹
   serviceName?: string // Kaptain 中的服务名
+  processLabels: string[] // devProcessItemList 中所有非空 label
 }
 
 export interface TaskInfo {
@@ -177,6 +178,7 @@ class KaTaskSource implements TaskSource {
                 isCurrent: false,
                 repo: b.repo,
                 serviceName: b.serviceName,
+                processLabels: (b.devProcessItemList ?? []).map(item => item.detail?.label).filter((l): l is string => !!l),
               })),
           } satisfies TaskInfo
         }))

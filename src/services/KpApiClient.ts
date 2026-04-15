@@ -108,6 +108,16 @@ export interface KaBranchChange {
   serviceName: string
   repo: string // git remote URL, e.g. "git@gitlab.qunhequnhe.com:fe/up/xxx.git"
   serviceType: string // 'WEB' | 'BACKEND'
+  devProcessItemList: {
+    actionType: "MR" | "CODE_REVIEW" | "MERGE",
+    detail: {
+      actionStatus: string;
+      existMr: boolean;
+      label: string;
+      lgtmList: string[];
+      mrUrl: string;
+    }
+  }[]
 }
 
 // ─── Kaptain 业务接口方法 ─────────────────────────────────────

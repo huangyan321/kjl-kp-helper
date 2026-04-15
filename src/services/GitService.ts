@@ -79,7 +79,7 @@ async function pickWorkspaceFolder(): Promise<string | undefined> {
  * @param repoUrl      可选：git remote URL，用于自动匹配 workspace 文件夹
  * @returns 实际使用的 workspace 文件夹路径（用于后续状态刷新）
  */
-export async function switchBranch(targetBranch: string, repoUrl?: string): Promise<string | undefined> {
+export async function switchBranch(targetBranch: string, repoUrl?: string): Promise<string | 'already' | undefined> {
   // 1. 确定目标工作区文件夹
   let folderPath: string | undefined
 
@@ -99,10 +99,23 @@ export async function switchBranch(targetBranch: string, repoUrl?: string): Prom
   const currentBranch = await git.revparse(['--abbrev-ref', 'HEAD']).catch(() => '')
   if (currentBranch.trim() === targetBranch) {
     window.showInformationMessage(`已在分支 ${targetBranch}`)
-    return folderPath
+    return 'already'
   }
 
-  // 3. 检查本地是否已有该分支
+  // 3. 检查脏工作区
+  const status = await git.status()
+  let stashed = false
+  if (!status.isClean()) {
+    const action = await window.showWarningMessage(
+      `工作区有未提交的改动（${status.files.length} 个文件），切换分支可能丢失更改。`,
+      { modal: true },
+      '暂存并切换',
+    )
+    if (action !== '暂存并切换') return undefined
+    await git.stash(['push', '-m', `auto-stash before switching to ${targetBranch}`])
+    stashed = true
+  }
+
   const branchSummary = await git.branchLocal()
   const hasLocal = branchSummary.all.includes(targetBranch)
 
@@ -113,6 +126,10 @@ export async function switchBranch(targetBranch: string, repoUrl?: string): Prom
     // 从远端拉取并创建本地分支
     await git.fetch('origin', targetBranch)
     await git.checkout(['-b', targetBranch, `origin/${targetBranch}`])
+  }
+
+  if (stashed) {
+    window.showInformationMessage(`改动已暂存（git stash），切换完成后可手动执行 git stash pop 恢复`)
   }
 
   return folderPath
