@@ -2,7 +2,7 @@
   "publisher": "huangyan",
   "name": "kjl-kp-helper",
   "displayName": "kjl-kp-helper",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": true,
   "packageManager": "pnpm@10.27.0",
   "description": "Kaptain 开发任务与 Git 分支管理插件",
@@ -22,6 +22,9 @@
   "engines": {
     "vscode": "^1.97.0"
   },
+  "extensionDependencies": [
+    "vscode.git"
+  ],
   "activationEvents": [
     "onStartupFinished"
   ],

@@ -23,6 +23,7 @@
   URL: {baseUrl}/project/detail/sprint/detail?projectId=X&sprint={iterationId}&key={task.key}&filterId={task.filterId}
 - filterId：fetchSprints 时调一次 getFilterId(ldap) 写入所有 TaskInfo，缓存复用
 - 打包修复：tsdown.config.ts 加 noExternal:['axios','simple-git','reactive-vscode']，产物 617KB
+- VS Code Git SCM 联动：watchVscodeGit 订阅分支变化+SCM活动仓库切换；getWorkspaceBranchInfo 优先用 VS Code Git API（同步无子进程）；getActiveProjectRepo 优先用 findRepoForUri
 
 ### Kaptain 接口清单
 - GET  /api/iteration/getIterationList?projectId=269
@@ -52,10 +53,11 @@ BranchInfo: { name, isCurrent, repo?, serviceName?, processLabels: string[] }
 ### 关键文件
 - src/services/KpApiClient.ts   — axios客户端、getFilterId、listIssues/listIssuesByIds/getChangeSet
 - src/services/TaskService.ts   — pLimit并发、fetchSprints聚合（父任务补充、filterId预取）
-- src/services/GitService.ts    — switchBranch(返回 string|'already'|undefined)、getWorkspaceBranchInfo
+- src/services/GitService.ts    — switchBranch(返回 string|'already'|undefined)、getWorkspaceBranchInfo(优先VS Code Git API)
+- src/services/VscodeGitProvider.ts — VS Code Git API封装：watchVscodeGit、findRepoForUri、getVscodeGitBranchInfo
 - src/commands/switchBranch.ts — doSwitchBranch(ProgressLocation.Window)、taskPrimaryActionCommand
 - src/commands/openInKaptain.ts — 右键跳转，读 task.filterId/iterationId/key
-- src/providers/TaskTreeProvider.ts — loadTasks、refreshBranchStatus、watchActiveEditor
+- src/providers/TaskTreeProvider.ts — loadTasks、refreshBranchStatus、watchActiveEditor(含Git SCM联动)
 - src/providers/TaskDecorationProvider.ts — makeTaskUri(taskId,colorKey|null,isActive)、badge逻辑
 
 ### package.json 配置项

@@ -1,5 +1,6 @@
 import simpleGit from 'simple-git'
 import { window, workspace } from 'vscode'
+import { getVscodeGitBranchInfo } from './VscodeGitProvider'
 
 /**
  * 解析 git remote URL 中的路径部分，用于与 workspace 文件夹匹配
@@ -160,6 +161,11 @@ export interface FolderBranchInfo {
 }
 
 export async function getWorkspaceBranchInfo(): Promise<FolderBranchInfo[]> {
+  // 优先使用 VS Code 内置 Git API：同步读取、无子进程，与 SCM 面板状态一致
+  const vscodeInfos = getVscodeGitBranchInfo()
+  if (vscodeInfos.length > 0) return vscodeInfos
+
+  // Fallback：VS Code Git 扩展不可用时退回 simple-git
   const folders = workspace.workspaceFolders ?? []
   const results: FolderBranchInfo[] = []
   for (const folder of folders) {

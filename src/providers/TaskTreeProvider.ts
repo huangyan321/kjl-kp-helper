@@ -1,6 +1,7 @@
 import { Disposable, EventEmitter, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem, TreeItemCollapsibleState, Uri, window, workspace } from 'vscode'
 import { isLoggedIn } from '../auth/AuthService'
 import { getWorkspaceBranchInfo, type FolderBranchInfo } from '../services/GitService'
+import { findRepoForUri, getRepoRemoteUrls, getSelectedRepo, watchVscodeGit } from '../services/VscodeGitProvider'
 import { type TaskInfo, taskService, type SprintInfo } from '../services/TaskService'
 import { state } from '../state'
 import { logger } from '../utils'
@@ -111,6 +112,15 @@ function repoMatches(a: string, b: string): boolean {
 async function getActiveProjectRepo(): Promise<string | undefined> {
   const activeEditor = window.activeTextEditor
   if (!activeEditor) return undefined
+
+  // 优先通过 VS Code Git API 找到活跃文件所在仓库的 remote URL
+  const repo = findRepoForUri(activeEditor.document.uri)
+  if (repo) {
+    const urls = getRepoRemoteUrls(repo)
+    return urls[0]
+  }
+
+  // Fallback：读取 package.json repository 字段
   const folder = workspace.getWorkspaceFolder(activeEditor.document.uri)
   if (!folder) return undefined
   try {
@@ -193,7 +203,11 @@ export class TaskTreeProvider implements TreeDataProvider<TreeNode> {
 
       this.state = 'ready'
       this.sprints = sprints
-      this.activeProjectRepo = await getActiveProjectRepo()
+      // 优先读取 SCM 面板已选中仓库，其次用活跃编辑器，最后 undefined（不过滤）
+      const selectedRepo = getSelectedRepo()
+      this.activeProjectRepo = selectedRepo
+        ? getRepoRemoteUrls(selectedRepo)[0]
+        : await getActiveProjectRepo()
       this.refresh()
     }
     catch (err: unknown) {
@@ -220,11 +234,34 @@ export class TaskTreeProvider implements TreeDataProvider<TreeNode> {
 
   /** 监听活跃编辑器变化，切换项目文件时自动重新过滤任务列表 */
   watchActiveEditor(): Disposable {
-    return window.onDidChangeActiveTextEditor(async () => {
-      if (this.state !== 'ready') return
-      this.activeProjectRepo = await getActiveProjectRepo()
-      this.refresh()
-    })
+    const disposables: Disposable[] = []
+
+    // 1. 监听活跃编辑器：切换文件时根据文件所在仓库更新活跃项目
+    disposables.push(
+      window.onDidChangeActiveTextEditor(async (editor) => {
+        if (this.state !== 'ready') return
+        if (!editor) return
+        // 优先通过 VS Code Git API 找到仓库；getActiveProjectRepo 已含 fallback
+        this.activeProjectRepo = await getActiveProjectRepo()
+        this.refresh()
+      }),
+    )
+
+    // 2. 联动 VS Code 内置 Git SCM：
+    //    - 任意仓库分支变化（含用户在 SCM 面板/终端切换）→ 刷新高亮
+    //    - SCM 面板手动切换「活动仓库」→ 切换任务过滤
+    disposables.push(
+      watchVscodeGit(
+        () => { void this.refreshBranchStatus() },
+        (remotes) => {
+          if (this.state !== 'ready') return
+          this.activeProjectRepo = remotes[0]
+          this.refresh()
+        },
+      ),
+    )
+
+    return { dispose: () => disposables.forEach(d => d.dispose()) }
   }
 
   getTreeItem(element: TreeNode): TreeItem {
