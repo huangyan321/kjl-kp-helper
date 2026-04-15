@@ -11,8 +11,8 @@ export async function loginCommand(): Promise<void> {
   }
 
   const uid = await window.showInputBox({
-    title: '登录 KA 平台 (1/2)',
-    placeHolder: '请输入账号（工号）',
+    title: '登录 Kaptain (1/2)',
+    placeHolder: '请输入账号（花名拼音）',
     ignoreFocusOut: true,
     validateInput: v => v?.trim() ? null : '账号不能为空',
   })
@@ -20,7 +20,7 @@ export async function loginCommand(): Promise<void> {
     return
 
   const pswd = await window.showInputBox({
-    title: '登录 KA 平台 (2/2)',
+    title: '登录 Kaptain (2/2)',
     placeHolder: '请输入密码',
     password: true,
     ignoreFocusOut: true,

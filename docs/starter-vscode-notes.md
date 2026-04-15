@@ -53,7 +53,7 @@ BranchInfo: { name, isCurrent, repo?, serviceName?, processLabels: string[] }
 - src/services/KpApiClient.ts   — axios客户端、getFilterId、listIssues/listIssuesByIds/getChangeSet
 - src/services/TaskService.ts   — pLimit并发、fetchSprints聚合（父任务补充、filterId预取）
 - src/services/GitService.ts    — switchBranch(返回 string|'already'|undefined)、getWorkspaceBranchInfo
-- src/commands/switchBranchMock.ts — doSwitchBranch(ProgressLocation.Window)、taskPrimaryActionCommand
+- src/commands/switchBranch.ts — doSwitchBranch(ProgressLocation.Window)、taskPrimaryActionCommand
 - src/commands/openInKaptain.ts — 右键跳转，读 task.filterId/iterationId/key
 - src/providers/TaskTreeProvider.ts — loadTasks、refreshBranchStatus、watchActiveEditor
 - src/providers/TaskDecorationProvider.ts — makeTaskUri(taskId,colorKey|null,isActive)、badge逻辑
